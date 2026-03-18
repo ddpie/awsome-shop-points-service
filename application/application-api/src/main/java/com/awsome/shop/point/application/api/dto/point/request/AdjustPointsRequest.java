@@ -1,5 +1,7 @@
 package com.awsome.shop.point.application.api.dto.point.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,4 +24,10 @@ public class AdjustPointsRequest {
     @NotBlank(message = "备注不能为空")
     @Size(max = 500, message = "备注不能超过500个字符")
     private String remark;
+
+    @AssertTrue(message = "调整数量不能为0")
+    @JsonIgnore
+    public boolean isAmountNonZero() {
+        return amount == null || amount != 0;
+    }
 }

@@ -66,11 +66,10 @@ public class PointBalanceRepositoryImpl implements PointBalanceRepository {
         IPage<PointBalancePO> result = pointBalanceMapper.selectPage(new Page<>(page, size), wrapper);
 
         PageResult<PointBalanceEntity> pageResult = new PageResult<>();
-        pageResult.setCurrent(result.getCurrent());
-        pageResult.setSize(result.getSize());
-        pageResult.setTotal(result.getTotal());
-        pageResult.setPages(result.getPages());
-        pageResult.setRecords(result.getRecords().stream().map(this::toEntity).collect(Collectors.toList()));
+        pageResult.setCurrentPage(result.getCurrent());
+        pageResult.setTotalElements(result.getTotal());
+        pageResult.setTotalPages(result.getPages());
+        pageResult.setContent(result.getRecords().stream().map(this::toEntity).collect(Collectors.toList()));
         return pageResult;
     }
 

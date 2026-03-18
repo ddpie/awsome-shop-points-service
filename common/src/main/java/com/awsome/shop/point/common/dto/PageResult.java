@@ -15,23 +15,21 @@ public class PageResult<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long current;
-    private Long size;
-    private Long total;
-    private Long pages;
-    private List<T> records;
+    private Long currentPage;
+    private Long totalElements;
+    private Long totalPages;
+    private List<T> content;
 
     public <R> PageResult<R> convert(Function<T, R> converter) {
-        List<R> convertedRecords = records.stream()
+        List<R> convertedRecords = content.stream()
                 .map(converter)
                 .collect(Collectors.toList());
 
         PageResult<R> result = new PageResult<>();
-        result.setCurrent(this.current);
-        result.setSize(this.size);
-        result.setTotal(this.total);
-        result.setPages(this.pages);
-        result.setRecords(convertedRecords);
+        result.setCurrentPage(this.currentPage);
+        result.setTotalElements(this.totalElements);
+        result.setTotalPages(this.totalPages);
+        result.setContent(convertedRecords);
         return result;
     }
 }

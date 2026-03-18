@@ -125,23 +125,22 @@ class PointDomainServiceImplTest {
         @DisplayName("按 userId 分页查询变动历史")
         void shouldReturnPagedTransactions() {
             PageResult<PointTransactionEntity> mockPage = new PageResult<>();
-            mockPage.setCurrent(1L);
-            mockPage.setSize(20L);
-            mockPage.setTotal(1L);
-            mockPage.setPages(1L);
+            mockPage.setCurrentPage(1L);
+            mockPage.setTotalElements(1L);
+            mockPage.setTotalPages(1L);
             PointTransactionEntity tx = new PointTransactionEntity();
             tx.setId(1L);
             tx.setUserId(1L);
             tx.setType(TransactionType.DISTRIBUTION);
             tx.setAmount(100);
-            mockPage.setRecords(Collections.singletonList(tx));
+            mockPage.setContent(Collections.singletonList(tx));
 
             when(pointTransactionRepository.pageByUserId(1L, 1, 20, null)).thenReturn(mockPage);
 
             PageResult<PointTransactionEntity> result = pointDomainService.getTransactions(1L, 1, 20, null);
 
-            assertThat(result.getRecords()).hasSize(1);
-            assertThat(result.getTotal()).isEqualTo(1L);
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getTotalElements()).isEqualTo(1L);
             verify(pointTransactionRepository).pageByUserId(1L, 1, 20, null);
         }
 
@@ -149,17 +148,16 @@ class PointDomainServiceImplTest {
         @DisplayName("按类型筛选变动历史")
         void shouldFilterByType() {
             PageResult<PointTransactionEntity> mockPage = new PageResult<>();
-            mockPage.setRecords(Collections.emptyList());
-            mockPage.setTotal(0L);
-            mockPage.setCurrent(1L);
-            mockPage.setSize(20L);
-            mockPage.setPages(0L);
+            mockPage.setContent(Collections.emptyList());
+            mockPage.setTotalElements(0L);
+            mockPage.setCurrentPage(1L);
+            mockPage.setTotalPages(0L);
 
             when(pointTransactionRepository.pageByUserId(1L, 1, 20, TransactionType.REDEMPTION)).thenReturn(mockPage);
 
             PageResult<PointTransactionEntity> result = pointDomainService.getTransactions(1L, 1, 20, TransactionType.REDEMPTION);
 
-            assertThat(result.getRecords()).isEmpty();
+            assertThat(result.getContent()).isEmpty();
             verify(pointTransactionRepository).pageByUserId(1L, 1, 20, TransactionType.REDEMPTION);
         }
     }
@@ -174,36 +172,34 @@ class PointDomainServiceImplTest {
         @DisplayName("分页查询所有余额")
         void shouldReturnPagedBalances() {
             PageResult<PointBalanceEntity> mockPage = new PageResult<>();
-            mockPage.setCurrent(1L);
-            mockPage.setSize(20L);
-            mockPage.setTotal(2L);
-            mockPage.setPages(1L);
-            mockPage.setRecords(Arrays.asList(buildBalance(1L, 100), buildBalance(2L, 200)));
+            mockPage.setCurrentPage(1L);
+            mockPage.setTotalElements(2L);
+            mockPage.setTotalPages(1L);
+            mockPage.setContent(Arrays.asList(buildBalance(1L, 100), buildBalance(2L, 200)));
 
             when(pointBalanceRepository.page(1, 20, null)).thenReturn(mockPage);
 
             PageResult<PointBalanceEntity> result = pointDomainService.pageBalances(1, 20, null);
 
-            assertThat(result.getRecords()).hasSize(2);
-            assertThat(result.getTotal()).isEqualTo(2L);
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getTotalElements()).isEqualTo(2L);
         }
 
         @Test
         @DisplayName("按 userId 精确匹配查询")
         void shouldFilterByUserId() {
             PageResult<PointBalanceEntity> mockPage = new PageResult<>();
-            mockPage.setCurrent(1L);
-            mockPage.setSize(20L);
-            mockPage.setTotal(1L);
-            mockPage.setPages(1L);
-            mockPage.setRecords(Collections.singletonList(buildBalance(1L, 100)));
+            mockPage.setCurrentPage(1L);
+            mockPage.setTotalElements(1L);
+            mockPage.setTotalPages(1L);
+            mockPage.setContent(Collections.singletonList(buildBalance(1L, 100)));
 
             when(pointBalanceRepository.page(1, 20, 1L)).thenReturn(mockPage);
 
             PageResult<PointBalanceEntity> result = pointDomainService.pageBalances(1, 20, 1L);
 
-            assertThat(result.getRecords()).hasSize(1);
-            assertThat(result.getRecords().get(0).getUserId()).isEqualTo(1L);
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0).getUserId()).isEqualTo(1L);
         }
     }
 

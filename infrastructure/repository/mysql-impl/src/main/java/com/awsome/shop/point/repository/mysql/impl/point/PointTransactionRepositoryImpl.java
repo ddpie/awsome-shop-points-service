@@ -48,11 +48,10 @@ public class PointTransactionRepositoryImpl implements PointTransactionRepositor
         IPage<PointTransactionPO> result = pointTransactionMapper.selectPage(new Page<>(page, size), wrapper);
 
         PageResult<PointTransactionEntity> pageResult = new PageResult<>();
-        pageResult.setCurrent(result.getCurrent());
-        pageResult.setSize(result.getSize());
-        pageResult.setTotal(result.getTotal());
-        pageResult.setPages(result.getPages());
-        pageResult.setRecords(result.getRecords().stream().map(this::toEntity).collect(Collectors.toList()));
+        pageResult.setCurrentPage(result.getCurrent());
+        pageResult.setTotalElements(result.getTotal());
+        pageResult.setTotalPages(result.getPages());
+        pageResult.setContent(result.getRecords().stream().map(this::toEntity).collect(Collectors.toList()));
         return pageResult;
     }
 

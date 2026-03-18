@@ -42,8 +42,8 @@ public class PointInternalController {
     }
 
     @Operation(summary = "查询指定用户积分余额")
-    @GetMapping("/balance/{userId}")
-    public Result<PointBalanceDTO> getBalanceByUserId(@PathVariable Long userId) {
-        return Result.success(pointApplicationService.getBalanceByUserId(userId));
+    @PostMapping("/balance")
+    public Result<PointBalanceDTO> getBalanceByUserId(@RequestBody @Valid GetBalanceRequest request) {
+        return Result.success(pointApplicationService.getBalanceByUserId(request.getUserId()));
     }
 }
