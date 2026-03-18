@@ -38,6 +38,21 @@
     <!-- ================================ -->
     <!-- Dev/Test 环境配置                -->
     <!-- ================================ -->
+    <springProfile name="docker">
+        <!-- Docker 环境：输出到控制台 -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%15.15t] %-40.40logger{39} : %m%n%wEx</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <logger name="com.awsome.shop.point" level="INFO"/>
+        <logger name="org.springframework" level="WARN"/>
+    </springProfile>
+
     <springProfile name="dev,test">
         <!-- 文件输出 Appender (JSON 格式) -->
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
