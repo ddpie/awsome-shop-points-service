@@ -104,9 +104,9 @@ DDD + 六边形架构，以 Maven 多模块项目组织。每一层拆分为 API
 - 返回 `Result<T>` 包装器（来自 `facade.http.response.Result`）
 - Swagger 注解：类上使用 `@Tag`，方法上使用 `@Operation`
 - 控制器分组：
-  - `PointController`（`/api/points`）— 员工端点
-  - `PointAdminController`（`/api/admin/points`）— 管理员端点
-  - `PointInternalController`（`/api/internal/points`）— 内部端点
+  - `PointController`（`/api/v1/point`）— 员工端点
+  - `PointAdminController`（`/api/v1/point/admin`）— 管理员端点
+  - `PointInternalController`（`/api/v1/internal/point`）— 内部端点
 - URL 规则遵循设计文档（aidlc-docs）定义的 API 契约
 
 ### 异常处理
@@ -121,14 +121,15 @@ DDD + 六边形架构，以 Maven 多模块项目组织。每一层拆分为 API
 - 每张表包含：`id`（BIGINT AUTO_INCREMENT）、`created_at`、`updated_at`、`created_by`、`updated_by`、`deleted`、`version`
 
 ## 并发控制策略
-- 余额变动操作（兑换扣除、管理员调整、积分回滚）使用悲观锁 `SELECT ... FOR UPDATE`
+- 余额扣除操作（兑换扣除、管理员手动扣除）：使用悲观锁 `SELECT ... FOR UPDATE`
+- 积分回滚：使用悲观锁 `SELECT ... FOR UPDATE`
+- 定时任务自动发放：使用原子 UPDATE（不使用 SELECT FOR UPDATE），每条独立事务（`REQUIRES_NEW`）
 - 余额更新使用直接 SQL（绕过乐观锁），配合悲观锁使用
-- 定时发放每条使用独立事务（`REQUIRES_NEW`），单条失败不影响其他用户
 
 ## 设计文档要求但尚未实现的功能
 以下功能在设计文档（aidlc-docs/construction/points-service）中定义但当前代码尚未实现：
 1. **distribution_batches 表**：发放批次记录表，用于记录每次定时发放的执行状态（RUNNING/COMPLETED/FAILED）
 2. **DistributionBatchRepository**：发放批次数据访问层
 3. **补发逻辑**：服务重启后检查 RUNNING 状态的未完成批次，支持补发
-4. **悲观锁超时设置**：事务级别 `SET innodb_lock_wait_timeout = 5`
+4. **悲观锁超时设置**：事务级别 `SET innodb_lock_wait_timeout = 5`（适用于扣除/调整/回滚操作）
 5. **DistributionConfigResponse 的 updatedAt 字段**：当前 DistributionConfigDTO 缺少 updatedAt

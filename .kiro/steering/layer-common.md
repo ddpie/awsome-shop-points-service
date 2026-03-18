@@ -32,12 +32,11 @@ fileMatchPattern: "common/**"
 | 枚举值 | 错误码 | 消息 | 对应设计文档 |
 |--------|--------|------|-------------|
 | BALANCE_NOT_FOUND | NOT_FOUND_001 | 积分余额记录不存在 | POINTS_001 |
-| INSUFFICIENT_BALANCE_ADJUST | BIZ_001 | 扣除后余额不足 | POINTS_002 |
-| INSUFFICIENT_BALANCE_REDEEM | BIZ_002 | 积分不足，无法兑换 | POINTS_003 |
+| INSUFFICIENT_BALANCE_ADJUST | BAD_REQUEST_001 | 扣除后余额不足 | POINTS_002 |
+| INSUFFICIENT_BALANCE_REDEEM | BAD_REQUEST_002 | 积分不足，无法兑换 | POINTS_003 |
 | TRANSACTION_NOT_FOUND | NOT_FOUND_002 | 积分变动记录不存在 | POINTS_004 |
-| INVALID_ROLLBACK_TYPE | BIZ_003 | 只能回滚兑换扣除记录 | POINTS_005 |
+| INVALID_ROLLBACK_TYPE | BAD_REQUEST_003 | 只能回滚兑换扣除记录 | POINTS_005 |
 | DUPLICATE_ROLLBACK | CONFLICT_001 | 该笔扣除已回滚，不可重复操作 | POINTS_006 |
-| CONFIG_NOT_FOUND | NOT_FOUND_003 | 配置项不存在 | POINTS_007 |
 
 ## 编码约定
 - 使用 Lombok `@Data`、`@Getter` 简化代码

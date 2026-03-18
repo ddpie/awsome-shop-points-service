@@ -21,6 +21,12 @@ public interface PointBalanceRepository {
 
     void updateBalance(Long userId, Integer newBalance);
 
+    /**
+     * 原子增加余额（用于定时发放，不使用悲观锁）
+     * @return 更新后的余额
+     */
+    Integer addBalanceAtomic(Long userId, Integer amount);
+
     PageResult<PointBalanceEntity> page(int page, int size, Long userId);
 
     List<PointBalanceEntity> findAll();

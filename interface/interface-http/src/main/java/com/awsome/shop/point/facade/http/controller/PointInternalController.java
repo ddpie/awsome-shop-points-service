@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "积分-内部", description = "服务间内部调用接口")
 @RestController
-@RequestMapping("/api/internal/points")
+@RequestMapping("/api/v1/internal/point")
 @RequiredArgsConstructor
 public class PointInternalController {
 

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "积分-管理员", description = "管理员积分管理接口")
 @RestController
-@RequestMapping("/api/admin/points")
+@RequestMapping("/api/v1/point/admin")
 @RequiredArgsConstructor
 public class PointAdminController {
 

@@ -27,14 +27,14 @@ public class PointApplicationServiceImpl implements PointApplicationService {
     public PageResult<PointTransactionDTO> getMyTransactions(Long userId, QueryTransactionsRequest request) {
         TransactionType type = parseType(request.getType());
         PageResult<PointTransactionEntity> page = pointDomainService.getTransactions(
-                userId, request.getPage(), request.getSize(), type);
+                userId, request.getPage() + 1, request.getSize(), type);
         return page.convert(this::toTransactionDTO);
     }
 
     @Override
     public PageResult<PointBalanceDTO> listBalances(QueryBalancesRequest request) {
         PageResult<PointBalanceEntity> page = pointDomainService.pageBalances(
-                request.getPage(), request.getSize(), request.getKeyword());
+                request.getPage() + 1, request.getSize(), request.getKeyword());
         return page.convert(this::toBalanceDTO);
     }
 
@@ -42,7 +42,7 @@ public class PointApplicationServiceImpl implements PointApplicationService {
     public PageResult<PointTransactionDTO> listUserTransactions(Long userId, QueryTransactionsRequest request) {
         TransactionType type = parseType(request.getType());
         PageResult<PointTransactionEntity> page = pointDomainService.getTransactions(
-                userId, request.getPage(), request.getSize(), type);
+                userId, request.getPage() + 1, request.getSize(), type);
         return page.convert(this::toTransactionDTO);
     }
 

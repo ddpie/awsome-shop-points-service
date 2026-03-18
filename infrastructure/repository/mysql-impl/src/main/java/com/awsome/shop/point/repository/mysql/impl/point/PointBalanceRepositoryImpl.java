@@ -50,6 +50,12 @@ public class PointBalanceRepositoryImpl implements PointBalanceRepository {
     }
 
     @Override
+    public Integer addBalanceAtomic(Long userId, Integer amount) {
+        pointBalanceMapper.addBalanceByUserId(userId, amount);
+        return pointBalanceMapper.selectBalanceByUserId(userId);
+    }
+
+    @Override
     public PageResult<PointBalanceEntity> page(int page, int size, Long userId) {
         LambdaQueryWrapper<PointBalancePO> wrapper = new LambdaQueryWrapper<>();
         if (userId != null) {

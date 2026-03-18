@@ -579,14 +579,14 @@ class PointDomainServiceImplTest {
     class DistributeToUserTests {
 
         @Test
-        @DisplayName("BR-008/BR-010: 发放成功，type=DISTRIBUTION，amount > 0")
+        @DisplayName("BR-008/BR-010: 发放成功，使用原子UPDATE，type=DISTRIBUTION，amount > 0")
         void shouldDistributeSuccessfully() {
-            PointBalanceEntity balance = buildBalance(1L, 100);
-            when(pointBalanceRepository.getByUserIdForUpdate(1L)).thenReturn(balance);
+            when(pointBalanceRepository.addBalanceAtomic(1L, 50)).thenReturn(150);
 
             pointDomainService.distributeToUser(1L, 50, "系统自动发放 - 2026年03月");
 
-            verify(pointBalanceRepository).updateBalance(1L, 150);
+            verify(pointBalanceRepository).addBalanceAtomic(1L, 50);
+            verify(pointBalanceRepository, never()).getByUserIdForUpdate(anyLong());
             ArgumentCaptor<PointTransactionEntity> captor = ArgumentCaptor.forClass(PointTransactionEntity.class);
             verify(pointTransactionRepository).save(captor.capture());
             PointTransactionEntity tx = captor.getValue();
@@ -600,23 +600,22 @@ class PointDomainServiceImplTest {
         @Test
         @DisplayName("余额记录不存在时跳过发放（不抛异常）")
         void shouldSkipWhenBalanceNotFound() {
-            when(pointBalanceRepository.getByUserIdForUpdate(1L)).thenReturn(null);
+            when(pointBalanceRepository.addBalanceAtomic(1L, 50)).thenReturn(null);
 
             pointDomainService.distributeToUser(1L, 50, "系统自动发放");
 
-            verify(pointBalanceRepository, never()).updateBalance(anyLong(), anyInt());
             verify(pointTransactionRepository, never()).save(any());
         }
 
         @Test
-        @DisplayName("BR-003: 发放时余额更新和流水创建同时执行")
-        void shouldCreateTransactionWithBalanceUpdate() {
-            PointBalanceEntity balance = buildBalance(2L, 0);
-            when(pointBalanceRepository.getByUserIdForUpdate(2L)).thenReturn(balance);
+        @DisplayName("BR-003/BR-004: 发放使用原子UPDATE而非悲观锁，余额更新与流水同时创建")
+        void shouldUseAtomicUpdateNotPessimisticLock() {
+            when(pointBalanceRepository.addBalanceAtomic(2L, 100)).thenReturn(100);
 
             pointDomainService.distributeToUser(2L, 100, "系统自动发放 - 2026年01月");
 
-            verify(pointBalanceRepository).updateBalance(2L, 100);
+            verify(pointBalanceRepository).addBalanceAtomic(2L, 100);
+            verify(pointBalanceRepository, never()).getByUserIdForUpdate(anyLong());
             verify(pointTransactionRepository).save(any(PointTransactionEntity.class));
         }
     }

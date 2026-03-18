@@ -24,4 +24,16 @@ public interface PointBalanceMapper extends BaseMapper<PointBalancePO> {
      */
     @Update("UPDATE point_balances SET balance = #{balance}, updated_at = NOW() WHERE user_id = #{userId} AND deleted = 0")
     int updateBalanceByUserId(@Param("userId") Long userId, @Param("balance") Integer balance);
+
+    /**
+     * 原子增加余额（用于定时发放，不使用悲观锁）
+     */
+    @Update("UPDATE point_balances SET balance = balance + #{amount}, updated_at = NOW() WHERE user_id = #{userId} AND deleted = 0")
+    int addBalanceByUserId(@Param("userId") Long userId, @Param("amount") Integer amount);
+
+    /**
+     * 查询用户当前余额值
+     */
+    @Select("SELECT balance FROM point_balances WHERE user_id = #{userId} AND deleted = 0")
+    Integer selectBalanceByUserId(@Param("userId") Long userId);
 }

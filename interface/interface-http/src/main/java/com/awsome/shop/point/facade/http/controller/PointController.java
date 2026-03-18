@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "积分-员工", description = "员工积分查询接口")
 @RestController
-@RequestMapping("/api/points")
+@RequestMapping("/api/v1/point")
 @RequiredArgsConstructor
 public class PointController {
 

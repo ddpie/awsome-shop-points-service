@@ -42,7 +42,7 @@ fileMatchPattern: "domain/**"
 | getDistributionAmount() | 无 | 否 | 默认值 100 |
 | updateDistributionAmount(amount) | 无 | 否 | UPSERT 配置 |
 | findAllBalances() | 无 | 否 | 定时发放用 |
-| distributeToUser(userId, amount, remark) | @Transactional(REQUIRES_NEW) | FOR UPDATE | 独立事务，单条失败不影响其他 |
+| distributeToUser(userId, amount, remark) | @Transactional(REQUIRES_NEW) | 原子UPDATE | 独立事务，不使用悲观锁，单条失败不影响其他 |
 
 ### Port 接口（repository-api / cache-api / mq-api / security-api）
 - 定义基础设施访问契约，由 infrastructure 层实现
@@ -51,7 +51,7 @@ fileMatchPattern: "domain/**"
 - 包路径：`repository.{aggregate}`、`cache.{aggregate}` 等
 
 #### 积分仓储端口
-- `PointBalanceRepository`：getByUserId, getByUserIdForUpdate（悲观锁）, save, updateBalance, page, findAll
+- `PointBalanceRepository`：getByUserId, getByUserIdForUpdate（悲观锁）, save, updateBalance, addBalanceAtomic（原子增加，用于发放）, page, findAll
 - `PointTransactionRepository`：save, getById, pageByUserId（分页+类型筛选）, existsRollbackByReferenceId
 - `SystemConfigRepository`：getByKey, upsert
 

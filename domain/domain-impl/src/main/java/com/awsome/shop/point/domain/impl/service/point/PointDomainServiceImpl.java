@@ -185,19 +185,18 @@ public class PointDomainServiceImpl implements PointDomainService {
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void distributeToUser(Long userId, Integer amount, String remark) {
-        PointBalanceEntity balance = pointBalanceRepository.getByUserIdForUpdate(userId);
-        if (balance == null) {
+        // 使用原子 UPDATE（不使用 SELECT FOR UPDATE），避免与兑换扣除的悲观锁冲突
+        Integer newBalance = pointBalanceRepository.addBalanceAtomic(userId, amount);
+        if (newBalance == null) {
             log.warn("用户 {} 积分余额记录不存在，跳过发放", userId);
             return;
         }
-        balance.addBalance(amount);
-        pointBalanceRepository.updateBalance(userId, balance.getBalance());
 
         PointTransactionEntity transaction = new PointTransactionEntity();
         transaction.setUserId(userId);
         transaction.setType(TransactionType.DISTRIBUTION);
         transaction.setAmount(amount);
-        transaction.setBalanceAfter(balance.getBalance());
+        transaction.setBalanceAfter(newBalance);
         transaction.setRemark(remark);
         pointTransactionRepository.save(transaction);
     }
