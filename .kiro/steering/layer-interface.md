@@ -14,28 +14,31 @@ fileMatchPattern: "interface/**"
 - 命名：`{Name}Controller`
 - 包路径：`facade.http.controller`
 
+#### 控制器分组
+- `PointController`（`@RequestMapping("/api/points")`）— 员工端点
+  - GET /balance — 查询当前用户积分余额（@RequestHeader("X-User-Id") Long userId）
+  - GET /transactions — 查询当前用户积分变动历史
+- `PointAdminController`（`@RequestMapping("/api/admin/points")`）— 管理员端点
+  - GET /balances — 查看所有员工积分余额
+  - GET /transactions/{userId} — 查看指定员工积分变动明细
+  - POST /adjust — 手动调整员工积分（@RequestHeader("X-User-Id") Long operatorId）
+  - GET /config — 获取发放配置
+  - PUT /config — 更新发放配置
+- `PointInternalController`（`@RequestMapping("/api/internal/points")`）— 内部端点
+  - POST /init — 初始化用户积分余额
+  - POST /deduct — 兑换扣除积分
+  - POST /rollback — 回滚积分扣除（返回 Result<Void>）
+  - GET /balance/{userId} — 查询指定用户积分余额
+
 #### URL 设计规范
-- 格式：`/api/v1/{scope}/{module}/{action}`，版本号之后必须是三段
-  - **第一段 `{scope}`**：访问范围
-    - `public` — 经过 API Gateway 对前端提供的接口
-    - `private` — 微服务之间内部调用的接口
-  - **第二段 `{module}`**：业务模块名（如 `point`、`category`、`brand`）
-  - **第三段 `{action}`**：具体操作
-- 示例：
-  - `POST /api/v1/public/point/get` — 前端查询单个商品
-  - `POST /api/v1/public/point/list` — 前端分页查询商品
-  - `POST /api/v1/public/point/create` — 前端创建商品
-  - `POST /api/v1/private/point/get` — 其他微服务内部查询商品
-- 常用 action：
-  - `/get` — 查询单条
-  - `/list` — 分页查询
-  - `/create` — 创建
-  - `/update` — 更新
-  - `/delete` — 删除
-- 所有端点均使用 `@PostMapping`（包括查询操作）
-- Controller 类上 `@RequestMapping("/api/v1")`，方法上 `@PostMapping("/{scope}/{module}/{action}")`
-- 请求体使用 `@RequestBody @Valid` 接收并校验
-- 返回值统一使用 `Result<T>` 包装（`com.awsome.shop.point.common.result.Result`）
+- URL 路径以设计文档（aidlc-docs/construction/points-service）定义的 API 契约为准
+- 使用标准 RESTful HTTP 方法（GET 查询、POST 创建/操作、PUT 更新）
+- 员工端点从 `X-User-Id` 请求头获取当前用户 ID（API 网关注入）
+- 管理员端点从 `X-User-Id` 请求头获取操作人 ID（用于审计）
+- 内部端点不需要 X-User-Id 请求头（服务间信任）
+- GET 请求的查询参数直接用方法参数或 Request 对象接收（不用 `@RequestBody`）
+- POST/PUT 请求体使用 `@RequestBody @Valid` 接收并校验
+- 返回值统一使用 `Result<T>` 包装（`facade.http.response.Result`）
 - Swagger 注解：类上 `@Tag(name = "...", description = "...")`，方法上 `@Operation(summary = "...")`
 
 #### 统一响应格式

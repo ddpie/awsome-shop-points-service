@@ -25,7 +25,7 @@ DDD + 六边形架构，以 Maven 多模块项目组织。每一层拆分为 API
 │       └── jwt-impl/                    # JWT 适配器
 ├── application/
 │   ├── application-api/                 # 应用服务接口 + DTO + 请求对象
-│   └── application-impl/               # 应用服务实现（@Service）
+│   └── application-impl/               # 应用服务实现（@Service）+ 定时任务调度器
 ├── interface/
 │   ├── interface-http/                  # REST 控制器（@RestController）、异常处理器、响应包装器（包名使用 facade）
 │   └── interface-consumer/              # SQS 消息消费者（包名使用 facade）
@@ -56,22 +56,27 @@ DDD + 六边形架构，以 Maven 多模块项目组织。每一层拆分为 API
 | 应用层 DTO | `application.api.dto.{aggregate}` |
 | 应用层请求 DTO | `application.api.dto.{aggregate}.request` |
 | 应用服务实现 | `application.impl.service.{aggregate}` |
+| 定时任务调度器 | `application.impl.scheduler` |
 | HTTP 控制器 | `facade.http.controller` |
 | HTTP 异常处理器 | `facade.http.exception` |
 | HTTP 响应包装器 | `facade.http.response` |
+| HTTP 请求基类 | `facade.http.request.common` |
 
 ## 各层关键模式
 
 ### 领域模型（`domain-model`）
 - 纯 Java POJO，使用 `@Data`（Lombok），不使用 Spring 注解
 - 实体类命名为 `{Name}Entity`
-- 业务方法定义在实体上（如 `updateInfo()`）
+- 业务方法定义在实体上（如 `addBalance()`、`deductBalance()`、`hasSufficientBalance()`）
 
 ### 领域服务（`domain-api` / `domain-impl`）
 - 接口定义在 `domain-api`，实现在 `domain-impl` 中标注 `@Service`
 - 通过 `@RequiredArgsConstructor` 进行构造器注入
 - 仅依赖端口接口（repository-api、cache-api 等）
 - 领域规则违反时抛出 `BusinessException`，使用 `ErrorCode` 枚举
+- 事务管理：
+  - 余额变动操作（adjust/deduct/rollback/init）使用 `@Transactional`
+  - 定时发放单条操作使用 `@Transactional(propagation = Propagation.REQUIRES_NEW)` 实现独立事务
 
 ### 仓储（`repository-api` / `mysql-impl`）
 - 端口接口定义在 `domain/repository-api` — 返回领域实体
@@ -82,6 +87,8 @@ DDD + 六边形架构，以 Maven 多模块项目组织。每一层拆分为 API
 - 通过 `@Version` 的 `version` 字段实现乐观锁
 - Mapper 使用 MyBatis-Plus 的 `BaseMapper<PO>`，标注 `@Mapper`
 - 在仓储实现中手动编写 `toEntity()` / `toPO()` 转换方法
+- 悲观锁查询使用 Mapper 注解 `@Select("SELECT ... FOR UPDATE")`
+- 余额更新使用直接 SQL `@Update`（绕过乐观锁，配合悲观锁使用）
 
 ### 应用服务（`application-api` / `application-impl`）
 - 接口定义在 `application-api`，实现在 `application-impl` 中标注 `@Service`
@@ -89,26 +96,39 @@ DDD + 六边形架构，以 Maven 多模块项目组织。每一层拆分为 API
 - 响应 DTO 命名为 `{Name}DTO`，使用 `@Data`
 - 在服务实现中手动编写 `toDTO()` 转换方法
 - 禁止直接依赖仓储 — 仅调用领域服务
+- 定时任务调度器（`PointDistributionScheduler`）放在 `application-impl` 的 `scheduler` 包下
 
 ### HTTP 控制器（`interface-http`）
-- `@RestController` + `@RequestMapping("/api/v1")` + `@RequiredArgsConstructor`
-- 所有端点均使用 POST（包括查询类的 get/list）
-- URL 规则：`/api/v1/{scope}/{module}/{action}`，版本号之后固定三段
-  - `{scope}`：`public`（经 API Gateway 对前端暴露）/ `private`（微服务间内部调用）
-  - `{module}`：业务模块名（如 `point`、`test`）
-  - `{action}`：具体操作（`get`、`list`、`create`、`update`、`delete`）
-- 类上 `@RequestMapping("/api/v1")`，方法上 `@PostMapping("/{scope}/{module}/{action}")`
+- `@RestController` + `@RequiredArgsConstructor`
 - 请求体使用 `@Valid` 校验
-- 返回 `Result<T>` 包装器（来自 `common.result.Result`）
+- 返回 `Result<T>` 包装器（来自 `facade.http.response.Result`）
 - Swagger 注解：类上使用 `@Tag`，方法上使用 `@Operation`
+- 控制器分组：
+  - `PointController`（`/api/points`）— 员工端点
+  - `PointAdminController`（`/api/admin/points`）— 管理员端点
+  - `PointInternalController`（`/api/internal/points`）— 内部端点
+- URL 规则遵循设计文档（aidlc-docs）定义的 API 契约
 
 ### 异常处理
 - 异常层级：`BaseException` → `BusinessException` / `ParameterException` / `SystemException`
-- 错误码实现 `ErrorCode` 接口，按领域分组到枚举中（如 `SampleErrorCode`）
-- 错误码格式：`{CATEGORY}_{SEQ}`（如 `NOT_FOUND_001`、`AUTH_001`、`CONFLICT_001`）
+- 错误码实现 `ErrorCode` 接口，按领域分组到枚举中（如 `PointsErrorCode`）
+- 错误码格式：`{CATEGORY}_{SEQ}`（如 `NOT_FOUND_001`、`BIZ_001`、`CONFLICT_001`）
 - `GlobalExceptionHandler` 根据错误码前缀自动映射 HTTP 状态码
 
 ### 数据库迁移
 - Flyway 脚本位于 `bootstrap/src/main/resources/db/migration/`
 - 表使用 `utf8mb4` 字符集、`InnoDB` 引擎
 - 每张表包含：`id`（BIGINT AUTO_INCREMENT）、`created_at`、`updated_at`、`created_by`、`updated_by`、`deleted`、`version`
+
+## 并发控制策略
+- 余额变动操作（兑换扣除、管理员调整、积分回滚）使用悲观锁 `SELECT ... FOR UPDATE`
+- 余额更新使用直接 SQL（绕过乐观锁），配合悲观锁使用
+- 定时发放每条使用独立事务（`REQUIRES_NEW`），单条失败不影响其他用户
+
+## 设计文档要求但尚未实现的功能
+以下功能在设计文档（aidlc-docs/construction/points-service）中定义但当前代码尚未实现：
+1. **distribution_batches 表**：发放批次记录表，用于记录每次定时发放的执行状态（RUNNING/COMPLETED/FAILED）
+2. **DistributionBatchRepository**：发放批次数据访问层
+3. **补发逻辑**：服务重启后检查 RUNNING 状态的未完成批次，支持补发
+4. **悲观锁超时设置**：事务级别 `SET innodb_lock_wait_timeout = 5`
+5. **DistributionConfigResponse 的 updatedAt 字段**：当前 DistributionConfigDTO 缺少 updatedAt

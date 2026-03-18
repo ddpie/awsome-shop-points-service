@@ -157,7 +157,7 @@ graph TD
 
 ```bash
 # 1. 启动 MySQL
-docker run -d --name mysql-8.4.8 -p 3307:3306 \
+docker run -d --name mysql-8.4.8 -p 3306:3306 \
   -e MYSQL_ROOT_PASSWORD=root mysql:8.4.8
 
 # 2. 创建数据库
