@@ -13,7 +13,7 @@ import java.util.List;
 public interface PointDomainService {
 
     /** 初始化用户积分余额（幂等） */
-    PointBalanceEntity initBalance(Long userId);
+    PointBalanceEntity initBalance(Long userId, Integer initialBalance);
 
     /** 查询用户积分余额 */
     PointBalanceEntity getBalance(Long userId);

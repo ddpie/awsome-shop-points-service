@@ -33,15 +33,16 @@ public class PointDomainServiceImpl implements PointDomainService {
 
     @Override
     @Transactional
-    public PointBalanceEntity initBalance(Long userId) {
+    public PointBalanceEntity initBalance(Long userId, Integer initialBalance) {
         // 幂等：已存在则直接返回
         PointBalanceEntity existing = pointBalanceRepository.getByUserId(userId);
         if (existing != null) {
             return existing;
         }
+        int balance = (initialBalance != null) ? initialBalance : 0;
         PointBalanceEntity entity = new PointBalanceEntity();
         entity.setUserId(userId);
-        entity.setBalance(0);
+        entity.setBalance(balance);
         pointBalanceRepository.save(entity);
         return pointBalanceRepository.getByUserId(userId);
     }

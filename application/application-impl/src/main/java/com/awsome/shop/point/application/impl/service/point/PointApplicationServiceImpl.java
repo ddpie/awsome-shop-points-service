@@ -69,7 +69,7 @@ public class PointApplicationServiceImpl implements PointApplicationService {
 
     @Override
     public PointBalanceDTO initPoints(InitPointsRequest request) {
-        return toBalanceDTO(pointDomainService.initBalance(request.getUserId()));
+        return toBalanceDTO(pointDomainService.initBalance(request.getUserId(), request.getInitialBalance()));
     }
 
     @Override

@@ -67,7 +67,7 @@ class PointDomainServiceImplTest {
             PointBalanceEntity existing = buildBalance(1L, 50);
             when(pointBalanceRepository.getByUserId(1L)).thenReturn(existing);
 
-            PointBalanceEntity result = pointDomainService.initBalance(1L);
+            PointBalanceEntity result = pointDomainService.initBalance(1L, null);
 
             assertThat(result).isSameAs(existing);
             verify(pointBalanceRepository, never()).save(any());
@@ -78,7 +78,7 @@ class PointDomainServiceImplTest {
         void shouldCreateNewBalanceWithZero() {
             when(pointBalanceRepository.getByUserId(1L)).thenReturn(null).thenReturn(buildBalance(1L, 0));
 
-            PointBalanceEntity result = pointDomainService.initBalance(1L);
+            PointBalanceEntity result = pointDomainService.initBalance(1L, null);
 
             ArgumentCaptor<PointBalanceEntity> captor = ArgumentCaptor.forClass(PointBalanceEntity.class);
             verify(pointBalanceRepository).save(captor.capture());
