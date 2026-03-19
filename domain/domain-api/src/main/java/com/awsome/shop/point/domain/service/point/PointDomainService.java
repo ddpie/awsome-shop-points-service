@@ -3,6 +3,7 @@ package com.awsome.shop.point.domain.service.point;
 import com.awsome.shop.point.common.dto.PageResult;
 import com.awsome.shop.point.domain.model.point.PointBalanceEntity;
 import com.awsome.shop.point.domain.model.point.PointTransactionEntity;
+import com.awsome.shop.point.domain.model.point.PointsRuleEntity;
 import com.awsome.shop.point.domain.model.point.TransactionType;
 
 import java.util.List;
@@ -44,4 +45,16 @@ public interface PointDomainService {
 
     /** 为单个用户发放积分（独立事务） */
     void distributeToUser(Long userId, Integer amount, String remark);
+
+    // ===== 积分规则管理 =====
+
+    PageResult<PointsRuleEntity> listRules(int page, int size);
+
+    PointsRuleEntity getRuleById(Long id);
+
+    PointsRuleEntity createRule(PointsRuleEntity entity);
+
+    PointsRuleEntity updateRule(PointsRuleEntity entity);
+
+    void deleteRule(Long id);
 }

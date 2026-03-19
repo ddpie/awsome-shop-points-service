@@ -7,6 +7,7 @@ import com.awsome.shop.point.domain.model.point.*;
 import com.awsome.shop.point.domain.service.point.PointDomainService;
 import com.awsome.shop.point.repository.point.PointBalanceRepository;
 import com.awsome.shop.point.repository.point.PointTransactionRepository;
+import com.awsome.shop.point.repository.point.PointsRuleRepository;
 import com.awsome.shop.point.repository.point.SystemConfigRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ public class PointDomainServiceImpl implements PointDomainService {
     private final PointBalanceRepository pointBalanceRepository;
     private final PointTransactionRepository pointTransactionRepository;
     private final SystemConfigRepository systemConfigRepository;
+    private final PointsRuleRepository pointsRuleRepository;
 
     @Override
     @Transactional
@@ -200,5 +202,37 @@ public class PointDomainServiceImpl implements PointDomainService {
         transaction.setBalanceAfter(newBalance);
         transaction.setRemark(remark);
         pointTransactionRepository.save(transaction);
+    }
+
+    // ===== 积分规则管理 =====
+
+    @Override
+    public PageResult<PointsRuleEntity> listRules(int page, int size) {
+        return pointsRuleRepository.findAll(page, size);
+    }
+
+    @Override
+    public PointsRuleEntity getRuleById(Long id) {
+        return pointsRuleRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(PointsErrorCode.RULE_NOT_FOUND));
+    }
+
+    @Override
+    public PointsRuleEntity createRule(PointsRuleEntity entity) {
+        return pointsRuleRepository.save(entity);
+    }
+
+    @Override
+    public PointsRuleEntity updateRule(PointsRuleEntity entity) {
+        pointsRuleRepository.findById(entity.getId())
+                .orElseThrow(() -> new BusinessException(PointsErrorCode.RULE_NOT_FOUND));
+        return pointsRuleRepository.update(entity);
+    }
+
+    @Override
+    public void deleteRule(Long id) {
+        pointsRuleRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(PointsErrorCode.RULE_NOT_FOUND));
+        pointsRuleRepository.deleteById(id);
     }
 }

@@ -10,7 +10,8 @@ public enum PointsErrorCode implements ErrorCode {
     INSUFFICIENT_BALANCE_REDEEM("BAD_REQUEST_002", "积分不足，无法兑换"),
     TRANSACTION_NOT_FOUND("NOT_FOUND_002", "积分变动记录不存在"),
     INVALID_ROLLBACK_TYPE("BAD_REQUEST_003", "只能回滚兑换扣除记录"),
-    DUPLICATE_ROLLBACK("CONFLICT_001", "该笔扣除已回滚，不可重复操作");
+    DUPLICATE_ROLLBACK("CONFLICT_001", "该笔扣除已回滚，不可重复操作"),
+    RULE_NOT_FOUND("NOT_FOUND_003", "积分规则不存在");
 
     private final String code;
     private final String message;
